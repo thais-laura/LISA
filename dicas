@@ -1,2 +1,6 @@
 WEBCAM - OpenCV
   desativar a camera padrão do computador e no VideoCapture(0) deixar como zero, daí a câmera da webcam fica como a padrão
+
+para saber qual comando vc deve completar depois de #! ali em cima
+tem que colocar no terminal which python3
+copiar e adicionar logo em seguida
