@@ -1,0 +1,3 @@
+WEBCAM - OpenCV
+
+desativar a camera padrão do computador e no VideoCapture(0) deixar como zero, daí a câmera da webcam fica como a padrão
