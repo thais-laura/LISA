@@ -4,3 +4,7 @@ WEBCAM - OpenCV
 para saber qual comando vc deve completar depois de #! ali em cima
 tem que colocar no terminal which python3
 copiar e adicionar logo em seguida
+
+
+para usar arduino ide + linux
+  pip ou pip3 install rosserial
