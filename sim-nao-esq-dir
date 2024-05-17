@@ -1,0 +1,152 @@
+#include <Arduino.h>
+#include <AccelStepper.h>
+
+// Definições de pinos para o motor da cabeça
+#define STEP_PIN1 14
+#define DIR_PIN1 12
+
+// Definições de pinos para o motor do braço
+#define IN21 5
+#define IN22 18
+#define IN23 19
+#define IN24 21
+
+//para esse motor, a ordem dos fios no driver fica cruzado (os dois do meio) ao definir os INX2 e INX3
+#define IN31 26
+#define IN32 33
+#define IN33 25
+#define IN34 32
+
+#define IN41 23
+#define IN42 22
+#define IN43 4
+#define IN44 2
+
+#define LED_BUILTIN 2
+
+// Criação dos objetos stepper para a cabeça e o braço
+AccelStepper stepperSIM(1, STEP_PIN1, DIR_PIN1);
+AccelStepper stepperNAO(AccelStepper::FULL4WIRE, IN21, IN22, IN23, IN24);
+AccelStepper stepperESQ(8, IN31, IN32, IN33, IN34);
+AccelStepper stepperDIR(8, IN41, IN43, IN42, IN44);
+
+// Definição dos passos por graus
+const int passosPor90Graus = 113;
+const int passosPor60Graus = 75;
+const int passosPor120Graus = 150;
+
+void setup() {
+  // Inicia a comunicação serial com 115200 baud rate.
+  Serial.begin(115200);
+  
+  // Configura o pino do LED como saída
+  pinMode(LED_BUILTIN, OUTPUT);
+  
+  stepperSIM.setMaxSpeed(1000);
+  stepperSIM.setAcceleration(500);
+
+  stepperNAO.setMaxSpeed(1000);
+  stepperNAO.setAcceleration(500);
+
+  stepperESQ.setMaxSpeed(1000);
+  stepperESQ.setAcceleration(500);
+
+  stepperDIR.setMaxSpeed(1000);
+  stepperDIR.setAcceleration(500);
+}
+
+//o motor pode girar sem parar, que a cabeça vai ficar fazendo sim
+void positivo() {
+  static unsigned long lastMillis = 0;
+  while (millis() - lastMillis > 5000) {
+    stepperSIM.setSpeed(500); 
+    lastMillis = millis();
+  }
+}
+
+void negativo() {
+  // Move para a posição inicial (90 graus)
+  stepperNAO.moveTo(passosPor90Graus);
+  while (stepperNAO.distanceToGo() != 0) {
+    stepperNAO.run();
+  }
+
+  for (int i = 0; i < 3; i++) {
+    // Move de 90 a 120 graus
+    for (int pos = passosPor90Graus; pos <= passosPor120Graus; pos += 3) {
+      stepperNAO.moveTo(pos);
+      while (stepperNAO.distanceToGo() != 0) {
+        stepperNAO.run();
+      }
+      delay(50);
+    }
+
+    // Move de 120 a 60 graus
+    for (int pos = passosPor120Graus; pos >= passosPor60Graus; pos -= 3) {
+      stepperNAO.moveTo(pos);
+      while (stepperNAO.distanceToGo() != 0) {
+        steppers.moveTo(positions);
+        stepperNAO.run();
+      }
+      delay(50);
+    }
+
+    // Move de 60 a 90 graus
+    for (int pos = passosPor60Graus; pos <= passosPor90Graus; pos += 3) {
+      stepperNAO.moveTo(pos);
+      while (stepperNAO.distanceToGo() != 0) {
+        stepperNAO.run();
+      }
+      delay(50);
+    }
+  }
+
+  // Volta para a posição inicial (90 graus)
+  stepperNAO.moveTo(passosPor90Graus);
+  while (stepperNAO.distanceToGo() != 0) {
+    stepperNAO.run();
+  }
+}
+
+void bracoDireito() {
+  // Sobe o braço 90 graus (113 passos)
+  stepperDIR.moveTo(passosPor90Graus);
+  while (stepperDIR.distanceToGo() != 0) {
+    stepperDIR.run();
+  }
+  delay(500);  // Pausa de meio segundo no topo
+
+  // Volta o braço para a posição inicial
+  stepperDIR.moveTo(0);
+  while (stepperDIR.distanceToGo() != 0) {
+    stepperDIR.run();
+  }
+}
+
+void bracoEsquerdo() {
+  // Sobe o braço 90 graus (113 passos)
+  stepperESQ.moveTo(passosPor90Graus);
+  while (stepperESQ.distanceToGo() != 0) {
+    stepperESQ.run();
+  }
+  delay(500);  // Pausa de meio segundo no topo
+
+  // Volta o braço para a posição inicial
+  stepperESQ.moveTo(0);
+  while (stepperESQ.distanceToGo() != 0) {
+    stepperESQ.run();
+  }
+}
+
+void loop() {
+  int ent = 0;
+  if(ent == 0){
+    positivo();
+  }else if(ent == 1){
+    negativo();
+  }else if(ent == 2){
+    bracoDireito();
+  }else if(ent == 3){
+    bracoEsquerdo();
+  }
+}
