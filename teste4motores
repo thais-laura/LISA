@@ -1,40 +1,32 @@
-#include <Arduino.h>
 #include <AccelStepper.h>
 
-// Definições de pinos para o motor
+// Definições de pinos para o motor da cabeça
 #define STEP_PIN1 14
 #define DIR_PIN1 12
 
-#define IN21 5
-#define IN22 18
-#define IN23 19
-#define IN24 21
+// Definições de pinos para o motor do braço
+#define STEP_PIN2 5
+#define DIR_PIN2 18
 
-//para esse motor, a ordem dos fios no driver fica cruzado (os dois do meio) ao definir os INX2 e INX3
-#define IN31 26
-#define IN32 33
-#define IN33 25
-#define IN34 32
+#define STEP_PIN3 19
+#define DIR_PIN3 21
+
+#define STEP_PIN4 26
+#define DIR_PIN4 33
 
 #define IN41 23
 #define IN42 22
 #define IN43 4
 #define IN44 2
 
-//#define IN51 13
-//#define IN52 15
-//#define IN53 34
-//#define IN54 35
-
 #define LED_BUILTIN 2
 
-// Criação do objeto stepper
-
+// Criação dos objetos stepper para a cabeça e o braço
 AccelStepper stepper1(1, STEP_PIN1, DIR_PIN1);
-AccelStepper stepper2(AccelStepper::FULL4WIRE, IN21, IN22, IN23, IN24);
-AccelStepper stepper3(8, IN31, IN32, IN33, IN34);
-AccelStepper stepper4(8, IN41, IN43, IN42, IN44);
-//AccelStepper stepper5(AccelStepper::FULL4WIRE, IN51, IN52, IN53, IN54);
+AccelStepper stepper2(1, STEP_PIN2, DIR_PIN2);
+AccelStepper stepper3(1, STEP_PIN3, DIR_PIN3);
+AccelStepper stepper4(1, STEP_PIN4, DIR_PIN4);
+AccelStepper stepper5(8, IN41, IN43, IN42, IN44);
 
 void setup() {
   // Inicia a comunicação serial com 115200 baud rate.
@@ -60,16 +52,16 @@ void setup() {
   stepper4.setAcceleration(500);
   stepper4.moveTo(0);
 
- // stepper5.setMaxSpeed(1000);
- // stepper5.setAcceleration(500);
- // stepper5.moveTo(0);
+  stepper5.setMaxSpeed(1000);
+  stepper5.setAcceleration(500);
+  stepper5.moveTo(0);
 
   // 500 passos por segundo
   stepper1.setSpeed(500); 
   stepper2.setSpeed(500);
   stepper3.setSpeed(1000);
   stepper4.setSpeed(1000);
-  //stepper5.setSpeed(500);
+  stepper5.setSpeed(500);
 }
 
 void loop() {
@@ -78,7 +70,7 @@ void loop() {
   stepper2.runSpeed();
   stepper3.runSpeed();
   stepper4.runSpeed();
- // stepper5.runSpeed();
+  stepper5.runSpeed();
 
   static unsigned long lastMillis = 0;
   if (millis() - lastMillis > 5000) {
@@ -86,7 +78,7 @@ void loop() {
     stepper2.setSpeed(-stepper2.speed());
     stepper3.setSpeed(-stepper3.speed());
     stepper4.setSpeed(-stepper4.speed());
-   // stepper5.setSpeed(-stepper5.speed());
+    stepper5.setSpeed(-stepper5.speed());
     lastMillis = millis();
   }
   /*
