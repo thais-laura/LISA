@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <AccelStepper.h>
 
 // Definições de pinos para o motor da cabeça
@@ -6,16 +5,14 @@
 #define DIR_PIN1 12
 
 // Definições de pinos para o motor do braço
-#define IN21 5
-#define IN22 18
-#define IN23 19
-#define IN24 21
+#define STEP_PIN2 5
+#define DIR_PIN2 18
 
-//para esse motor, a ordem dos fios no driver fica cruzado (os dois do meio) ao definir os INX2 e INX3
-#define IN31 26
-#define IN32 33
-#define IN33 25
-#define IN34 32
+#define STEP_PIN3 19
+#define DIR_PIN3 21
+
+#define STEP_PIN4 26
+#define DIR_PIN4 33
 
 #define IN41 23
 #define IN42 22
@@ -26,14 +23,16 @@
 
 // Criação dos objetos stepper para a cabeça e o braço
 AccelStepper stepperSIM(1, STEP_PIN1, DIR_PIN1);
-AccelStepper stepperNAO(AccelStepper::FULL4WIRE, IN21, IN22, IN23, IN24);
-AccelStepper stepperESQ(8, IN31, IN32, IN33, IN34);
+AccelStepper stepperNAO(1, STEP_PIN2, DIR_PIN2);
+AccelStepper stepperESQ(1, STEP_PIN3, DIR_PIN3);
+AccelStepper stepperBASE(1, STEP_PIN4, DIR_PIN4);
 AccelStepper stepperDIR(8, IN41, IN43, IN42, IN44);
 
 // Definição dos passos por graus
 const int passosPor90Graus = 113;
 const int passosPor60Graus = 75;
 const int passosPor120Graus = 150;
+int ent;
 
 void setup() {
   // Inicia a comunicação serial com 115200 baud rate.
@@ -53,14 +52,22 @@ void setup() {
 
   stepperDIR.setMaxSpeed(1000);
   stepperDIR.setAcceleration(500);
+
+  ent = 0;
 }
 
-//o motor pode girar sem parar, que a cabeça vai ficar fazendo sim
+// O motor pode girar sem parar, que a cabeça vai ficar fazendo sim
 void positivo() {
   static unsigned long lastMillis = 0;
-  while (millis() - lastMillis > 5000) {
+  stepperSIM.setSpeed(500);
+  stepperSIM.runSpeed(); 
+  for(int i=0; i<3; i++){
+    long lastMillis = 0;
+  if (millis() - lastMillis > 5000) {
     stepperSIM.setSpeed(500); 
+    stepperSIM.runSpeed();
     lastMillis = millis();
+  }
   }
 }
 
@@ -85,7 +92,6 @@ void negativo() {
     for (int pos = passosPor120Graus; pos >= passosPor60Graus; pos -= 3) {
       stepperNAO.moveTo(pos);
       while (stepperNAO.distanceToGo() != 0) {
-        steppers.moveTo(positions);
         stepperNAO.run();
       }
       delay(50);
@@ -125,6 +131,7 @@ void bracoDireito() {
 
 void bracoEsquerdo() {
   // Sobe o braço 90 graus (113 passos)
+  for(int i = 0; i<3; i++){
   stepperESQ.moveTo(passosPor90Graus);
   while (stepperESQ.distanceToGo() != 0) {
     stepperESQ.run();
@@ -136,17 +143,54 @@ void bracoEsquerdo() {
   while (stepperESQ.distanceToGo() != 0) {
     stepperESQ.run();
   }
+  }
+}
+
+void base() {
+  // Gira a base 90 graus (113 passos)
+  stepperBASE.moveTo(passosPor90Graus);
+  while (stepperBASE.distanceToGo() != 0) {
+    stepperBASE.run();
+  }
+  delay(500);  // Pausa de meio segundo no topo
+
+  // Volta a base para a posição inicial
+  stepperBASE.moveTo(0);
+  while (stepperBASE.distanceToGo() != 0) {
+    stepperBASE.run();
+  }
 }
 
 void loop() {
-  int ent = 0;
+  // Modifique este valor para testar diferentes funções: 0, 1, 2, 3
+  /*ent = 0;
   if(ent == 0){
     positivo();
-  }else if(ent == 1){
+    ent = 3;
+  }if(ent == 1){
     negativo();
-  }else if(ent == 2){
+    ent = 2;
+  }if(ent == 2){
     bracoDireito();
-  }else if(ent == 3){
+    ent = 0;
+  }if(ent == 3){
     bracoEsquerdo();
+    ent = 4;
+  }if(ent == 4){
+    base();
+    ent = 0;
+  }*/
+
+  static unsigned long lastMillis = 0;
+  stepperSIM.setSpeed(500);
+  stepperSIM.runSpeed(); 
+  for(int i=0; i<3; i++){
+    long lastMillis = 0;
+  if (millis() - lastMillis > 5000) {
+    stepperSIM.setSpeed(500); 
+    stepperSIM.runSpeed();
+    lastMillis = millis();
   }
+  }
+  
 }
