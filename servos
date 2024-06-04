@@ -1,38 +1,142 @@
-#include <Servo.h>
+#include <AccelStepper.h>
 
-#define pino1 17  // Pino ao qual o servo está conectado
-#define pino2 2
+// Definições de pinos para o motor da cabeça
+#define STEP_PIN1 12
+#define DIR_PIN1 14
+#define SLEEP_PIN1 13
 
-Servo servoMotor1;  // Cria um objeto Servo
-Servo servoMotor2;
+// Definições de pinos para o motor do braço
+#define STEP_PIN2 2
+#define DIR_PIN2 4
+#define SLEEP_PIN2 16 //34 35 DONT (1 proibido usar trava serial)
 
-void setup() {
-  // Inicia a comunicação serial com 115200 baud rate
-  Serial.begin(115200);
+#define STEP_PIN3 22
+#define DIR_PIN3 23
+#define SLEEP_PIN3 17
 
-  // Anexa o objeto Servo ao pino de controle do servo
-  servoMotor.attach(pino1);
-  servoMotor.attach(pino2);
+#define STEP_PIN4 26
+#define DIR_PIN4 33
+#define SLEEP_PIN4 25
 
-  Serial.println("Servo motor teste");
+#define IN41 5
+#define IN42 18
+#define IN43 19
+#define IN44 21
+
+#define LED_BUILTIN 2
+
+// Criação dos objetos stepper para a cabeça e o braço
+AccelStepper stepperDIR(1, STEP_PIN1, DIR_PIN1);
+AccelStepper stepperNAO(1, STEP_PIN2, DIR_PIN2);
+AccelStepper stepperESQ(1, STEP_PIN3, DIR_PIN3);
+AccelStepper stepperBASE(1, STEP_PIN4, DIR_PIN4);
+AccelStepper stepperSIM(8, IN41, IN43, IN42, IN44);
+
+// Definição dos passos por graus
+const int passosPor90Graus = 113;
+const int passosPor60Graus = 75;
+const int passosPor120Graus = 150;
+int ent;
+
+void zerar_posicao(AccelStepper &stepper, int pino_sleep){
+
+  digitalWrite(pino_sleep, HIGH);
+  stepper.moveTo(0);
+  stepper.setSpeed(500); 
 }
 
+void setup() {
+  // Inicia a comunicação serial com 115200 baud rate.
+  Serial.begin(115200);
+
+  // Configura os pinos de sono como saída e os define como 1 (desativados)
+  pinMode(SLEEP_PIN1, OUTPUT);
+  digitalWrite(SLEEP_PIN1, LOW);
+  
+  pinMode(SLEEP_PIN2, OUTPUT);
+  digitalWrite(SLEEP_PIN2, LOW);
+  
+  pinMode(SLEEP_PIN3, OUTPUT);
+  digitalWrite(SLEEP_PIN3, LOW);
+  
+  pinMode(SLEEP_PIN4, OUTPUT);
+  digitalWrite(SLEEP_PIN4, LOW);
+  
+  // Configura o pino do LED como saída
+  pinMode(LED_BUILTIN, OUTPUT);
+  
+  stepperSIM.setMaxSpeed(1000);
+  stepperSIM.setAcceleration(500);
+  stepperSIM.setSpeed(500); 
+
+  stepperNAO.setMaxSpeed(1000);
+  stepperNAO.setAcceleration(500);
+  stepperNAO.setSpeed(500); 
+
+  stepperESQ.setMaxSpeed(1000);
+  stepperESQ.setAcceleration(500);
+  stepperESQ.setSpeed(500); 
+
+  stepperDIR.setMaxSpeed(1000);
+  stepperDIR.setAcceleration(500);
+  stepperDIR.setSpeed(500); 
+
+  stepperBASE.setMaxSpeed(1000);
+  stepperBASE.setAcceleration(500);
+  stepperBASE.setSpeed(500); 
+
+  zerar_posicao(stepperSIM, SLEEP_PIN1);
+  zerar_posicao(stepperNAO, SLEEP_PIN2);
+  zerar_posicao(stepperESQ, SLEEP_PIN3);
+  zerar_posicao(stepperBASE, SLEEP_PIN4);
+}
+
+void mover_motor(AccelStepper &motor, int pino_sleep, int posicao, int speed) {
+  // Ativa o pino de sono correspondente ao motor atual
+  digitalWrite(pino_sleep, HIGH);
+
+  // Move o motor para a nova posição com a velocidade especificada
+  motor.moveTo(posicao);
+  motor.setSpeed(speed);
+}
+
+void direito(int posicao, int speed, int qtd, int cump){
+  digitalWrite(SLEEP_PIN1, HIGH);
+  int i;
+  for(i=0; i<qtd; i++){
+    if(i%2 == 0){
+      mover_motor(stepperDIR, SLEEP_PIN1, posicao, 500);
+    }else{
+      if(cump == 0){
+        mover_motor(stepperDIR, SLEEP_PIN1, -posicao, 500);
+      }else{
+        mover_motor(stepperDIR, SLEEP_PIN1, 0, 500);
+      }
+    }
+  }
+  mover_motor(stepperDIR, SLEEP_PIN1, 0);
+}
+
+void base(int posicao, int speed, int qtd){
+  digitalWrite(SLEEP_PIN4, HIGH);
+  int i;
+  for(i=0; i<qtd; i++){
+    if(i%2 == 0){
+      mover_motor(stepperBASE, SLEEP_PIN4, posicao, 500);
+    }else{
+      mover_motor(stepperBASE, SLEEP_PIN4, -posicao, 500);
+    }
+  }
+  mover_motor(stepperBASE, SLEEP_PIN4, 0, 500);
+}
+
+void danca(){
+  direito(135, 500, 4, 0);
+  esquerdo(-135, 500, 4, 0);
+  base(60, 500, 4);
+}
+
+
 void loop() {
-  // Gira o servo para a posição 0 graus (extremo esquerdo)
-  Serial.println("Movendo para 0 graus");
-  servoMotor1.write(0);
-  servoMotor2.write(0);
-  delay(1000);
-
-  // Gira o servo para a posição 90 graus (meio)
-  Serial.println("Movendo para 90 graus");
-  servoMotor1.write(90);
-  servoMotor2.write(90);
-  delay(1000);
-
-  // Gira o servo para a posição 180 graus (extremo direito)
-  Serial.println("Movendo para 180 graus");
-  servoMotor1.write(180);
-  servoMotor2.write(180);
-  delay(1000);
+  
 }
