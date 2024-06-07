@@ -15,7 +15,7 @@
 #define SLEEP_PIN3 33 //17
 
 #define STEP_PIN4 26
-#define DIR_PIN4 0 //33
+#define DIR_PIN4 27 //33
 #define SLEEP_PIN4 25
 
 #define IN41 5
